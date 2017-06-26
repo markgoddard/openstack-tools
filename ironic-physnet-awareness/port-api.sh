@@ -1,8 +1,10 @@
 #!/bin/bash -ex
 
 export OS_BAREMETAL_API_VERSION=1.32
-export OS_URL=http://localhost:6385
-export OS_TOKEN=fake
+if [[ -z $OS_AUTH_URL ]]; then
+    export OS_URL=http://localhost:6385
+    export OS_TOKEN=fake
+fi
 
 NODE_UUID=$(uuidgen)
 PORT1_MAC='00:11:22:33:44:55'
