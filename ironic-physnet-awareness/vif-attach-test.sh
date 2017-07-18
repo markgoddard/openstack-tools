@@ -1,8 +1,8 @@
 #!/bin/bash -ex
 
-# Add segments to neutron.conf [DEFAULT] extensions.
+# Add segments to neutron.conf [DEFAULT] service_plugins.
 
-export OS_BAREMETAL_API_VERSION=1.32
+export OS_BAREMETAL_API_VERSION=1.34
 if [[ -z $OS_AUTH_URL ]]; then
     export OS_URL=http://localhost:6385
     export OS_TOKEN=fake
@@ -14,12 +14,14 @@ PORT2_MAC='00:11:22:33:44:02'
 PORT3_MAC='00:11:22:33:44:03'
 PORT4_MAC='00:11:22:33:44:04'
 PORT5_MAC='00:11:22:33:44:05'
+PORT6_MAC='00:11:22:33:44:06'
 LLC_SI=switch_id=00:11:22:33:44:55
 LLC_PI=port_id=x1234
 
 function cleanup {
         echo "Cleaning up"
 
+        [[ -n $PORT6_UUID ]] && openstack baremetal port delete $PORT6_UUID
         [[ -n $PORT5_UUID ]] && openstack baremetal port delete $PORT5_UUID
         [[ -n $PORT4_UUID ]] && openstack baremetal port delete $PORT4_UUID
         [[ -n $PORT3_UUID ]] && openstack baremetal port delete $PORT3_UUID
@@ -132,6 +134,14 @@ openstack baremetal node vif detach vif-test $VIF1_UUID
 echo "Test 6: Failure"
 openstack baremetal node vif attach vif-test $VIF4_UUID
 if openstack baremetal node vif attach vif-test $VIF5_UUID; then
+    echo "Expected attachment to fail"
+    exit 1
+fi
+
+# Node should not have multiple ports on the same routed network.
+echo "Test 7: TODO"
+PORT6_UUID=$(openstack baremetal port create --node $NODE_UUID --local-link-connection $LLC_SI --local-link-connection $LLC_PI $PORT6_MAC --physical-network physnet4 -f value -c uuid)
+if openstack baremetal node vif attach vif-test $VIF3_UUID; then
     echo "Expected attachment to fail"
     exit 1
 fi

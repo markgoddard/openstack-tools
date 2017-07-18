@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-export OS_BAREMETAL_API_VERSION=1.32
+export OS_BAREMETAL_API_VERSION=1.34
 if [[ -z $OS_AUTH_URL ]]; then
     export OS_URL=http://localhost:6385
     export OS_TOKEN=fake
