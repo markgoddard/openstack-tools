@@ -53,7 +53,7 @@ until openstack hypervisor show $node_uuid >/dev/null 2>&1; do
     sleep 10
 done
 
-until [[ $(openstack hypervisor show $node_uuid -f value -c free_ram_mb >/dev/null 2>&1) -ne 0 ]]; do
+until [[ $(openstack hypervisor show $node_uuid -f value -c free_ram_mb) -ne 0 ]]; do
     echo "Waiting for node's nova hypervisor to become schedulable"
     sleep 10
 done
