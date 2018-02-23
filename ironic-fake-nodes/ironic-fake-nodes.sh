@@ -11,31 +11,46 @@
 set -e
 
 IMAGE=test
-FLAVOR=compute-A
-NETWORK=test-net
+FLAVOR=test
+NETWORK=test
+NODE=test
+SERVER=test
+
 NETWORK_INTERFACE=neutron
+DISK=10
+RAM=1024
+CPUS=1
+CPU_ARCH=x86_64
+RESOURCE_CLASS=RC0
+MAC=11:22:33:44:55:66
 
 # Create a node.
 openstack baremetal node create \
---name test \
+--name $NODE \
 --driver fake-hardware \
+--boot-interface fake \
+--deploy-interface fake \
+--management-interface fake \
 --network-interface $NETWORK_INTERFACE \
---property local_gb=222 \
---property memory_mb=262144 \
---property cpus=40 \
---property cpu_arch=x86_64
-node_uuid=$(openstack baremetal node show test -f value -c uuid)
+--power-interface fake \
+--property local_gb=$DISK \
+--property memory_mb=$RAM \
+--property cpus=$CPUS \
+--property cpu_arch=$CPU_ARCH \
+--resource-class $RESOURCE_CLASS
+
+node_uuid=$(openstack baremetal node show $NODE -f value -c uuid)
 
 # Create a port.
 if [[ $NETWORK_INTERFACE = noop ]]; then
     # For noop network interface:
     openstack baremetal port create \
-    11:22:33:44:55:66 \
+    $MAC \
     --node $node_uuid
 else
     # For neutron network interface:
     openstack baremetal port create \
-    11:22:33:44:55:66 \
+    $MAC \
     --node $node_uuid \
     --local-link-connection switch_id=00:11:22:33:44:55 \
     --local-link-connection port_id=eth0
@@ -65,9 +80,13 @@ openstack image create $IMAGE < hi
 # Create a flavor:
 openstack flavor create \
 $FLAVOR \
---vcpus 40 \
---ram 262144 \
---disk 222 \
+--vcpus $CPUS \
+--ram $RAM \
+--disk $DISK \
+--property resources:CUSTOM_$RESOURCE_CLASS=1 \
+--property resources:VCPUS=0 \
+--property resources:MEMORY_MB=0 \
+--property resources:DISK_GB=0 \
 --public
 
 # Create a network:
@@ -95,7 +114,7 @@ openstack quota set $OS_PROJECT_NAME \
 
 # Create an instance
 openstack server create \
-test \
+$SERVER \
 --flavor $FLAVOR \
 --image $IMAGE \
 --network $NETWORK
