@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  connection: local
+  roles:
+    - role: stackhpc.libvirt-host
+      libvirt_host_pools:
+        - name: default
+          type: dir
+          capacity: 100G
+          path: /var/lib/libvirt/images
+          mode: 711
+          owner: root
+          group: root
+      libvirt_host_networks:
+        - name: default
+          mode: bridge
+          bridge: breth1
+
