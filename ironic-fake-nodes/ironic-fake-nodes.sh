@@ -24,6 +24,22 @@ CPU_ARCH=x86_64
 RESOURCE_CLASS=RC0
 MAC=11:22:33:44:55:66
 
+function cleanup {
+  openstack server delete $SERVER || true
+  openstack network delete $NETWORK || true
+  openstack image delete $IMAGE || true
+  openstack flavor delete $FLAVOR || true
+  openstack baremetal node delete $NODE || true
+}
+
+if [[ $1 == cleanup ]]; then
+  cleanup
+  exit 0
+elif [[ -n $1 ]]; then
+  echo "Usage: $0 [cleanup]"
+  exit 1
+fi
+
 # Create a node.
 openstack baremetal node create \
 --name $NODE \
